@@ -23,6 +23,7 @@ const TAB_STEP = { colors: 1, text: 2, logo: 3, pattern: 4 }
 
 export default function BuilderPage() {
   const [activeTab, setActiveTab] = useState('colors')
+  const [activeMobileTab, setActiveMobileTab] = useState('customize') // 'product', 'customize', 'review'
   const [showQuoteModal, setShowQuoteModal] = useState(false)
   const [showSavedModal, setShowSavedModal] = useState(false)
   const selectedProduct = useStore(state => state.selectedProduct)
@@ -89,10 +90,10 @@ export default function BuilderPage() {
 
       <BuilderHeader activeStep={TAB_STEP[activeTab] || 0} />
 
-      <div className="flex flex-1 overflow-hidden min-w-0">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-w-0">
 
-        {/* LEFT SIDEBAR */}
-        <aside className="w-72 flex-shrink-0 flex flex-col bg-white border-r border-gray-200 overflow-hidden">
+        {/* LEFT SIDEBAR (DESKTOP ONLY) */}
+        <aside className="hidden lg:flex w-72 flex-shrink-0 flex flex-col bg-white border-r border-gray-200 overflow-hidden">
           <div className="p-4 border-b border-gray-100">
             <ProductSelector />
           </div>
@@ -123,7 +124,7 @@ export default function BuilderPage() {
         </aside>
 
         {/* CENTER: 3D CANVAS */}
-        <main className="flex-1 relative overflow-hidden min-w-0">
+        <main className="flex-1 relative overflow-hidden min-w-0 h-[40vh] lg:h-full flex-shrink-0 lg:flex-shrink">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-gray-200 pointer-events-none" />
           <div className="relative w-full h-full">
             <ModelViewer />
@@ -136,8 +137,54 @@ export default function BuilderPage() {
           </div>
         </main>
 
-        {/* RIGHT SIDEBAR */}
-        <aside className="w-64 flex-shrink-0 flex flex-col bg-white border-l border-gray-200 p-4 overflow-hidden">
+        {/* MOBILE CONTROL DRAWER */}
+        <div className="lg:hidden flex-1 flex flex-col min-h-0 bg-white border-t border-gray-200 overflow-hidden">
+          {activeMobileTab === 'product' && (
+            <div className="flex-1 overflow-y-auto p-4">
+              <ProductSelector />
+            </div>
+          )}
+          
+          {activeMobileTab === 'customize' && (
+            <>
+              <div className="flex border-b border-gray-100 flex-shrink-0 bg-gray-50/50">
+                {CONTROL_TABS.map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-xs transition-colors border-b-2 ${
+                      activeTab === tab.id
+                        ? 'border-blue-500 text-blue-600 bg-blue-50'
+                        : 'border-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="text-base leading-none">{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                {activeTab === 'colors'  && <ColorPanel />}
+                {activeTab === 'text'    && <TextPanel />}
+                {activeTab === 'logo'    && <LogoPanel />}
+                {activeTab === 'pattern' && <PatternPanel />}
+              </div>
+            </>
+          )}
+
+          {activeMobileTab === 'review' && (
+            <div className="flex-1 overflow-y-auto p-4">
+              <DesignSummary 
+                onSave={handleSave} 
+                onQuote={handleQuote} 
+                onLoadDesign={() => setShowSavedModal(true)} 
+              />
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT SIDEBAR (DESKTOP ONLY) */}
+        <aside className="hidden lg:flex w-64 flex-shrink-0 flex flex-col bg-white border-l border-gray-200 p-4 overflow-hidden">
           <DesignSummary 
             onSave={handleSave} 
             onQuote={handleQuote} 
@@ -146,6 +193,37 @@ export default function BuilderPage() {
         </aside>
 
       </div>
+
+      {/* MOBILE TAB BAR */}
+      <nav className="lg:hidden h-16 bg-white border-t border-gray-200 flex flex-shrink-0">
+        <button
+          onClick={() => setActiveMobileTab('product')}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-[11px] transition-colors border-t-2 ${
+            activeMobileTab === 'product' ? 'border-blue-500 text-blue-600 bg-blue-50/20 font-semibold' : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <span className="text-lg">👕</span>
+          <span>Product</span>
+        </button>
+        <button
+          onClick={() => setActiveMobileTab('customize')}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-[11px] transition-colors border-t-2 ${
+            activeMobileTab === 'customize' ? 'border-blue-500 text-blue-600 bg-blue-50/20 font-semibold' : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <span className="text-lg">🎨</span>
+          <span>Customize</span>
+        </button>
+        <button
+          onClick={() => setActiveMobileTab('review')}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-[11px] transition-colors border-t-2 ${
+            activeMobileTab === 'review' ? 'border-blue-500 text-blue-600 bg-blue-50/20 font-semibold' : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <span className="text-lg">📋</span>
+          <span>Review</span>
+        </button>
+      </nav>
 
       {/* QUOTE MODAL */}
       {showQuoteModal && (
