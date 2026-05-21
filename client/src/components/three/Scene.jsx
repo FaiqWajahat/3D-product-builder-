@@ -27,7 +27,7 @@ export default function Scene({ children }) {
       <OrbitControls
         enableZoom={true}
         enablePan={false}
-        minDistance={3}
+        minDistance={0.5}
         maxDistance={15}
         minPolarAngle={Math.PI / 8}
         maxPolarAngle={Math.PI / 1.8}
