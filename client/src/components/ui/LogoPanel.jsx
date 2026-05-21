@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import useStore from '../../store/useStore'
+import { API_BASE_URL } from '../../config'
 
 const PLACEMENTS = ['chest', 'back', 'sleeve']
 const MAX_BYTES = 2 * 1024 * 1024
@@ -32,7 +33,7 @@ export default function LogoPanel() {
     formData.append('logo', file)
 
     try {
-      const res = await fetch('http://localhost:5000/api/uploads', {
+      const res = await fetch(`${API_BASE_URL}/api/uploads`, {
         method: 'POST',
         body: formData,
       })

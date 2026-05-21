@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import useStore from '../../store/useStore';
+import { API_BASE_URL } from '../../config';
 
 export default function SavedDesignsModal({ isOpen, onClose }) {
   const [designs, setDesigns] = useState([]);
@@ -12,7 +13,7 @@ export default function SavedDesignsModal({ isOpen, onClose }) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/designs', {
+      const res = await fetch(`${API_BASE_URL}/api/designs`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -43,7 +44,7 @@ export default function SavedDesignsModal({ isOpen, onClose }) {
     if (!window.confirm('Are you sure you want to delete this design?')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/designs/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/designs/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

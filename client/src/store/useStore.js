@@ -116,6 +116,8 @@ const useStore = create((set, get) => ({
       patternId: snapshot.patternId || state.patternId,
       designName: snapshot.name || snapshot.designName || state.designName,
     }));
+    // Persist as the active design in localStorage
+    localStorage.setItem("savedDesign", JSON.stringify(snapshot));
   },
 }));
 

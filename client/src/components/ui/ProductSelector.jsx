@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import useStore from '../../store/useStore'
+import { API_BASE_URL } from '../../config'
 
 const FALLBACK_PRODUCTS = [
   {
@@ -36,14 +37,41 @@ export default function ProductSelector() {
   const setSelectedProduct = useStore(state => state.setSelectedProduct)
 
   useEffect(() => {
-    const API = import.meta.env.VITE_API_URL || 'http://localhost:5000'
     setLoading(true)
-    fetch(`${API}/api/products`)
+    fetch(`${API_BASE_URL}/api/products`)
       .then(res => { if (!res.ok) throw new Error('API not ready'); return res.json() })
-      .then(data => { setProducts(data.length > 0 ? data : FALLBACK_PRODUCTS) })
-      .catch(() => setProducts(FALLBACK_PRODUCTS))
+      .then(data => {
+        const list = data.length > 0 ? data : FALLBACK_PRODUCTS
+        setProducts(list)
+        
+        const hasSaved = localStorage.getItem('savedDesign')
+        if (!hasSaved && list.length > 0) {
+          const first = list[0]
+          setSelectedProduct({
+            id: first._id,
+            name: first.name,
+            category: first.category,
+            modelFilePath: first.modelFilePath,
+            colorZones: first.colorZones,
+          })
+        }
+      })
+      .catch(() => {
+        setProducts(FALLBACK_PRODUCTS)
+        const hasSaved = localStorage.getItem('savedDesign')
+        if (!hasSaved && FALLBACK_PRODUCTS.length > 0) {
+          const first = FALLBACK_PRODUCTS[0]
+          setSelectedProduct({
+            id: first._id,
+            name: first.name,
+            category: first.category,
+            modelFilePath: first.modelFilePath,
+            colorZones: first.colorZones,
+          })
+        }
+      })
       .finally(() => setLoading(false))
-  }, [])
+  }, [setSelectedProduct])
 
   const categories = getCategories(products)
   const filtered = activeCategory === 'all'

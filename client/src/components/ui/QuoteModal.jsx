@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import useStore from '../../store/useStore';
+import { API_BASE_URL } from '../../config';
 
 export default function QuoteModal({ onClose, token, handleSave }) {
   const [name, setName] = useState('');
@@ -30,7 +31,7 @@ export default function QuoteModal({ onClose, token, handleSave }) {
         throw new Error('Failed to save design before submitting quote.');
       }
 
-      const res = await fetch('http://localhost:5000/api/orders', {
+      const res = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

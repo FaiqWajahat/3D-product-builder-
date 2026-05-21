@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useStore from '../store/useStore'
+import { API_BASE_URL } from '../config'
 import ModelViewer from '../components/three/ModelViewer'
 import ProductSelector from '../components/ui/ProductSelector'
 import ColorPanel from '../components/ui/ColorPanel'
@@ -27,12 +28,24 @@ export default function BuilderPage() {
   const selectedProduct = useStore(state => state.selectedProduct)
   const token = useStore(state => state.token)
 
+  useEffect(() => {
+    const saved = localStorage.getItem('savedDesign')
+    if (saved) {
+      try {
+        const snapshot = JSON.parse(saved)
+        useStore.getState().loadDesignSnapshot(snapshot)
+      } catch (err) {
+        console.error('Failed to parse saved design:', err)
+      }
+    }
+  }, [])
+
   const handleSave = async () => {
     const snapshot = useStore.getState().getSnapshot()
     
     if (token) {
       try {
-        const res = await fetch('http://localhost:5000/api/designs', {
+        const res = await fetch(`${API_BASE_URL}/api/designs`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
