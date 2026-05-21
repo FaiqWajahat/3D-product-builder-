@@ -15,8 +15,15 @@ const errorHandler = require('./middleware/errorMiddleware');
 
 const app = express();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB and seed products
+connectDB().then(async () => {
+  try {
+    const seedProducts = require('./config/seed');
+    await seedProducts();
+  } catch (err) {
+    console.error('Failed to run database seed:', err);
+  }
+});
 
 // Middleware
 app.use(cors());

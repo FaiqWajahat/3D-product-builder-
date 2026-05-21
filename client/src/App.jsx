@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import BuilderPage from './pages/BuilderPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import SportSelectionPage from './pages/SportSelectionPage'
+import TemplateSelectionPage from './pages/TemplateSelectionPage'
 import useStore from './store/useStore'
 
 const ProtectedRoute = ({ children }) => {
@@ -19,6 +21,30 @@ export default function App() {
           path="/" 
           element={
             <ProtectedRoute>
+              <Navigate to="/sports" replace />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/sports" 
+          element={
+            <ProtectedRoute>
+              <SportSelectionPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/templates/:sport" 
+          element={
+            <ProtectedRoute>
+              <TemplateSelectionPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/builder/:productId" 
+          element={
+            <ProtectedRoute>
               <BuilderPage />
             </ProtectedRoute>
           } 
@@ -27,7 +53,7 @@ export default function App() {
           path="/builder" 
           element={
             <ProtectedRoute>
-              <BuilderPage />
+              <Navigate to="/sports" replace />
             </ProtectedRoute>
           } 
         />
@@ -35,3 +61,4 @@ export default function App() {
     </BrowserRouter>
   )
 }
+

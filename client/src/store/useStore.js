@@ -7,20 +7,10 @@ const useStore = create((set, get) => ({
   isLoggedIn: !!localStorage.getItem("token"),
 
   // Currently selected product
-  selectedProduct: {
-    id: "64a7f1b2c3d4e5f6a7b8c9d0",
-    name: "Baseball Jersey",
-    category: "jersey",
-    modelFilePath: "/models/jersey.glb",
-    colorZones: ["body", "sleeves", "collar"],
-  },
+  selectedProduct: null,
 
   // Color zones — keys match product.colorZones array
-  colorZones: {
-    body: "#1a56db",
-    sleeves: "#ffffff",
-    collar: "#e3342f",
-  },
+  colorZones: {},
 
   // Text customisation
   textConfig: {
@@ -48,9 +38,11 @@ const useStore = create((set, get) => ({
     set({
       selectedProduct: product,
       // Reset colour zones to defaults when product changes
-      colorZones: Object.fromEntries(
-        (product.colorZones || []).map((zone) => [zone, "#ffffff"]),
-      ),
+      colorZones: product
+        ? Object.fromEntries(
+            (product.colorZones || []).map((zone) => [zone, "#ffffff"]),
+          )
+        : {},
     }),
 
   setColorZone: (zone, color) =>

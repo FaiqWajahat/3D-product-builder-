@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import useStore from '../store/useStore'
 import { API_BASE_URL } from '../config'
+import { FALLBACK_PRODUCTS } from '../data/fallbackProducts'
 import ModelViewer from '../components/three/ModelViewer'
 import ProductSelector from '../components/ui/ProductSelector'
 import ColorPanel from '../components/ui/ColorPanel'
@@ -22,6 +24,37 @@ const CONTROL_TABS = [
 const TAB_STEP = { colors: 1, text: 2, logo: 3, pattern: 4 }
 
 export default function BuilderPage() {
+  const { productId } = useParams()
+  const navigate = useNavigate()
+  
+  // Helper to determine initial loading state
+  const getInitialLoading = (id) => {
+    if (!id) return false
+    const currentProd = useStore.getState().selectedProduct
+    if (currentProd && (currentProd.id === id || currentProd._id === id)) {
+      return false
+    }
+    const saved = localStorage.getItem('savedDesign')
+    if (saved) {
+      try {
+        const snapshot = JSON.parse(saved)
+        if (snapshot.selectedProduct && (snapshot.selectedProduct.id === id || snapshot.selectedProduct._id === id)) {
+          return false
+        }
+      } catch { /* ignore */ }
+    }
+    return true
+  }
+
+  // Initialize loading based on current product state to avoid flicker/delay
+  const [loading, setLoading] = useState(() => getInitialLoading(productId))
+  const [prevProductId, setPrevProductId] = useState(productId)
+
+  if (productId !== prevProductId) {
+    setPrevProductId(productId)
+    setLoading(getInitialLoading(productId))
+  }
+
   const [activeTab, setActiveTab] = useState('colors')
   const [activeMobileTab, setActiveMobileTab] = useState('customize') // 'product', 'customize', 'review'
   const [showQuoteModal, setShowQuoteModal] = useState(false)
@@ -30,16 +63,73 @@ export default function BuilderPage() {
   const token = useStore(state => state.token)
 
   useEffect(() => {
+    if (!productId) {
+      navigate('/sports', { replace: true })
+      return
+    }
+
+    // Try loading design snapshot from localStorage if it matches
     const saved = localStorage.getItem('savedDesign')
     if (saved) {
       try {
         const snapshot = JSON.parse(saved)
-        useStore.getState().loadDesignSnapshot(snapshot)
+        if (snapshot.selectedProduct && (snapshot.selectedProduct.id === productId || snapshot.selectedProduct._id === productId)) {
+          useStore.getState().loadDesignSnapshot(snapshot)
+          return
+        }
       } catch (err) {
-        console.error('Failed to parse saved design:', err)
+        console.error('Failed to parse saved design snapshot:', err)
       }
     }
-  }, [])
+
+    // Check if store's active product matches
+    const currentProd = useStore.getState().selectedProduct
+    if (currentProd && (currentProd.id === productId || currentProd._id === productId)) {
+      return
+    }
+
+    // Otherwise, fetch product template asynchronously
+    fetch(`${API_BASE_URL}/api/products/${productId}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Product not found')
+        return res.json()
+      })
+      .then(data => {
+        useStore.getState().setSelectedProduct({
+          id: data._id || data.id,
+          name: data.name,
+          category: data.category,
+          modelFilePath: data.modelFilePath,
+          colorZones: data.colorZones,
+        })
+        setLoading(false)
+      })
+      .catch(() => {
+        const fallback = FALLBACK_PRODUCTS.find(p => p._id === productId || p.id === productId)
+        if (fallback) {
+          useStore.getState().setSelectedProduct({
+            id: fallback._id || fallback.id,
+            name: fallback.name,
+            category: fallback.category,
+            modelFilePath: fallback.modelFilePath,
+            colorZones: fallback.colorZones,
+          })
+          setLoading(false)
+        } else {
+          alert('Product template not found. Redirecting to selection.')
+          navigate('/sports', { replace: true })
+        }
+      })
+  }, [productId, navigate])
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-50 text-slate-800">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mb-4"></div>
+        <p className="text-sm font-semibold tracking-wide text-slate-500 uppercase">Loading Workspace...</p>
+      </div>
+    )
+  }
 
   const handleSave = async () => {
     const snapshot = useStore.getState().getSnapshot()

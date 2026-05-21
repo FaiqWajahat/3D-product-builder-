@@ -5,6 +5,7 @@ const STEPS = ['Product', 'Colors', 'Text', 'Logo', 'Pattern', 'Review']
 
 export default function BuilderHeader({ activeStep = 0 }) {
   const selectedProduct = useStore(state => state.selectedProduct)
+  const setSelectedProduct = useStore(state => state.setSelectedProduct)
   const user = useStore(state => state.user)
   const logout = useStore(state => state.logout)
   const navigate = useNavigate()
@@ -14,14 +15,31 @@ export default function BuilderHeader({ activeStep = 0 }) {
     navigate('/login')
   }
 
+  const handleBackToWizard = () => {
+    if (window.confirm('Do you want to go back to product selection? Your current unsaved customizations will be reset.')) {
+      setSelectedProduct(null)
+      localStorage.removeItem('savedDesign')
+      navigate('/sports')
+    }
+  }
+
   return (
     <header className="h-14 flex items-center justify-between px-6 border-b border-gray-200 bg-white flex-shrink-0">
       <div className="flex items-center gap-3">
-        <span className="text-sm font-semibold text-gray-900">3D Builder</span>
+        <button
+          onClick={handleBackToWizard}
+          className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-blue-600 transition-colors bg-gray-100 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg border border-gray-200 hover:border-blue-200"
+          title="Go back to sports and template selection"
+        >
+          <span>←</span> Choose Product
+        </button>
         {selectedProduct?.name && (
           <>
             <span className="text-gray-300">/</span>
-            <span className="text-sm text-gray-500">{selectedProduct.name}</span>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700 uppercase tracking-wide">
+              {selectedProduct.category}
+            </span>
+            <span className="text-sm font-medium text-gray-500">{selectedProduct.name}</span>
           </>
         )}
       </div>

@@ -1,40 +1,18 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import useStore from '../../store/useStore'
 import { API_BASE_URL } from '../../config'
-
-const FALLBACK_PRODUCTS = [
-  {
-    _id: '64a7f1b2c3d4e5f6a7b8c9d0',
-    name: 'Baseball Jersey',
-    category: 'jersey',
-    modelFilePath: '/models/jersey.glb',
-    colorZones: ['body', 'sleeves', 'collar'],
-  },
-  {
-    _id: '64a7f1b2c3d4e5f6a7b8c9d1',
-    name: 'Baseball Cap',
-    category: 'cap',
-    modelFilePath: '/models/cap.glb',
-    colorZones: ['body', 'brim', 'button'],
-  },
-  {
-    _id: '64a7f1b2c3d4e5f6a7b8c9d2',
-    name: 'T-Shirt',
-    category: 't-shirt',
-    modelFilePath: '/models/t-shirt.glb',
-    colorZones: ['body', 'piping', 'waistband'],
-  },
-]
+import { FALLBACK_PRODUCTS } from '../../data/fallbackProducts'
 
 const getCategories = (products) =>
   ['all', ...new Set(products.map(p => p.category))]
 
 export default function ProductSelector() {
+  const navigate = useNavigate()
   const [products, setProducts] = useState(FALLBACK_PRODUCTS)
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('all')
   const selectedProduct = useStore(state => state.selectedProduct)
-  const setSelectedProduct = useStore(state => state.setSelectedProduct)
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/products`)
@@ -42,35 +20,12 @@ export default function ProductSelector() {
       .then(data => {
         const list = data.length > 0 ? data : FALLBACK_PRODUCTS
         setProducts(list)
-        
-        const hasSaved = localStorage.getItem('savedDesign')
-        if (!hasSaved && list.length > 0) {
-          const first = list[0]
-          setSelectedProduct({
-            id: first._id,
-            name: first.name,
-            category: first.category,
-            modelFilePath: first.modelFilePath,
-            colorZones: first.colorZones,
-          })
-        }
       })
       .catch(() => {
         setProducts(FALLBACK_PRODUCTS)
-        const hasSaved = localStorage.getItem('savedDesign')
-        if (!hasSaved && FALLBACK_PRODUCTS.length > 0) {
-          const first = FALLBACK_PRODUCTS[0]
-          setSelectedProduct({
-            id: first._id,
-            name: first.name,
-            category: first.category,
-            modelFilePath: first.modelFilePath,
-            colorZones: first.colorZones,
-          })
-        }
       })
       .finally(() => setLoading(false))
-  }, [setSelectedProduct])
+  }, [])
 
   const categories = getCategories(products)
   const filtered = activeCategory === 'all'
@@ -78,13 +33,7 @@ export default function ProductSelector() {
     : products.filter(p => p.category === activeCategory)
 
   const handleSelect = (product) => {
-    setSelectedProduct({
-      id: product._id,
-      name: product.name,
-      category: product.category,
-      modelFilePath: product.modelFilePath,
-      colorZones: product.colorZones,
-    })
+    navigate(`/builder/${product._id || product.id}`)
   }
 
   return (
@@ -112,14 +61,14 @@ export default function ProductSelector() {
           {[1,2,3].map(i => <div key={i} className="h-10 bg-gray-100 rounded-lg animate-pulse" />)}
         </div>
       ) : (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
           {filtered.map(product => {
-            const isSelected = selectedProduct?.id === product._id
+            const isSelected = selectedProduct?.id === (product._id || product.id)
             return (
               <button
-                key={product._id}
+                key={product._id || product.id}
                 onClick={() => handleSelect(product)}
-                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-2.5 border transition-colors ${
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2.5 border transition-colors ${
                   isSelected
                     ? 'bg-blue-50 border-blue-200 text-blue-800'
                     : 'border-transparent hover:bg-gray-50 text-gray-700'
@@ -139,3 +88,4 @@ export default function ProductSelector() {
     </div>
   )
 }
+
