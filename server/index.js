@@ -30,6 +30,11 @@ app.use('/api/designs', designRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/orders', orderRoutes);
 
+// Health check route
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', message: '3D Product Builder API is running' });
+});
+
 // Error handling middleware (MUST be last)
 app.use(errorHandler);
 
