@@ -35,14 +35,31 @@ const useStore = create((set, get) => ({
   // ── Actions ──────────────────────────────────────────────────────────────
 
   setSelectedProduct: (product) =>
-    set({
-      selectedProduct: product,
-      // Reset colour zones to defaults when product changes
-      colorZones: product
-        ? Object.fromEntries(
-            (product.colorZones || []).map((zone) => [zone, "#ffffff"]),
-          )
-        : {},
+    set((state) => {
+      const isBasketball = product?.category === 'basketball';
+      const updatedTextConfig = { ...state.textConfig };
+      let updatedLogoPlacement = state.logoPlacement;
+      
+      if (isBasketball) {
+        if (updatedTextConfig.placement === 'sleeve') {
+          updatedTextConfig.placement = 'chest';
+        }
+        if (updatedLogoPlacement === 'sleeve') {
+          updatedLogoPlacement = 'chest';
+        }
+      }
+      
+      return {
+        selectedProduct: product,
+        // Reset colour zones to defaults when product changes
+        colorZones: product
+          ? Object.fromEntries(
+              (product.colorZones || []).map((zone) => [zone, "#ffffff"]),
+            )
+          : {},
+        textConfig: updatedTextConfig,
+        logoPlacement: updatedLogoPlacement,
+      };
     }),
 
   setColorZone: (zone, color) =>

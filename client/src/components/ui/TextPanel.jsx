@@ -6,6 +6,10 @@ const PLACEMENTS = ['chest', 'back', 'sleeve']
 export default function TextPanel() {
   const textConfig = useStore(state => state.textConfig)
   const setTextConfig = useStore(state => state.setTextConfig)
+  const selectedProduct = useStore(state => state.selectedProduct)
+
+  const isBasketball = selectedProduct?.category === 'basketball'
+  const placements = isBasketball ? ['chest', 'back'] : PLACEMENTS
 
   return (
     <div className="flex flex-col gap-3">
@@ -69,7 +73,7 @@ export default function TextPanel() {
       <div className="flex flex-col gap-1">
         <label className="text-xs text-gray-500">Placement</label>
         <div className="flex gap-2">
-          {PLACEMENTS.map(p => (
+          {placements.map(p => (
             <button
               key={p}
               onClick={() => setTextConfig({ placement: p })}

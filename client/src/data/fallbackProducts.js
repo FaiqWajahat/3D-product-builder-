@@ -27,8 +27,8 @@ export const FALLBACK_PRODUCTS = [
     _id: '64a7f1b2c3d4e5f6a7b8c9d3',
     name: 'Basketball Jersey',
     category: 'basketball',
-    modelFilePath: '/models/jersey.glb',
-    colorZones: ['body', 'sleeves', 'collar'],
+    modelFilePath: '/models/basketball_jersey.glb',
+    colorZones: ['body', 'stitching', 'branding', 'numbers'],
     description: 'Sleeveless game-day basketball jersey'
   },
   {

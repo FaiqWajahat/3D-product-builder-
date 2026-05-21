@@ -2,10 +2,10 @@ const Product = require('../models/Product');
 
 const seedProducts = async () => {
   try {
-    // Count existing products to see if we already have baseball/basketball seeded
-    const count = await Product.countDocuments({ category: { $in: ['baseball', 'basketball'] } });
-    if (count > 0) {
-      console.log('Baseball and Basketball products already seeded.');
+    // Check if basketball jersey uses the updated high-fidelity model
+    const basketballJersey = await Product.findOne({ name: 'Basketball Jersey' });
+    if (basketballJersey && basketballJersey.modelFilePath === '/models/basketball_jersey.glb') {
+      console.log('Baseball and Basketball products already seeded with latest models.');
       return;
     }
 
@@ -39,8 +39,8 @@ const seedProducts = async () => {
         name: 'Basketball Jersey',
         category: 'basketball',
         description: 'Sleeveless game-day basketball jersey',
-        modelFilePath: '/models/jersey.glb',
-        colorZones: ['body', 'sleeves', 'collar'],
+        modelFilePath: '/models/basketball_jersey.glb',
+        colorZones: ['body', 'stitching', 'branding', 'numbers'],
       },
       {
         name: 'Basketball Shorts',

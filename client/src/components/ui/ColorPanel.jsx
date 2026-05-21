@@ -10,7 +10,7 @@ export default function ColorPanel() {
       {Object.entries(colorZones).map(([zone, color], index) => (
         <div key={zone} className="flex items-center justify-between">
           <label className="text-sm text-gray-700">
-            Part {index + 1}
+            Area {index + 1}
           </label>
           <div className="flex items-center gap-2">
             <div

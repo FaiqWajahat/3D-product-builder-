@@ -7,10 +7,19 @@ import PatternOverlay from './PatternOverlay'
 /**
  * Maps a material name or node name to its color zone.
  */
-function getMaterialZone(matName = '', objName = '', parentName = '') {
+function getMaterialZone(matName = '', objName = '', parentName = '', category = '') {
   const m = matName.toLowerCase()
   const o = objName.toLowerCase()
   const p = parentName.toLowerCase()
+  const cat = category.toLowerCase()
+
+  // 0. Basketball checks (using parent node names)
+  if (cat === 'basketball') {
+    if (p.includes('fabric')) return 'body'
+    if (p.includes('stitching')) return 'stitching'
+    if (p.includes('jordan') || p.includes('motorola') || p.includes('logo') || p.includes('slogan') || p.includes('patch') || p.includes('tag')) return 'branding'
+    if (p.includes('number') || p.includes('name')) return 'numbers'
+  }
 
   // 1. Cap checks (M04 = brim, M02 = button, others = body)
   if (o.includes('m04') || p.includes('m04')) return 'brim'
@@ -37,6 +46,11 @@ function getMaterialZone(matName = '', objName = '', parentName = '') {
 export default function GarmentModel({ modelPath, onMeshesFound }) {
   const { scene } = useGLTF(modelPath)
   const colorZones = useStore(state => state.colorZones)
+  const selectedProduct = useStore(state => state.selectedProduct)
+  const textConfig = useStore(state => state.textConfig)
+  const logoUrl = useStore(state => state.logoUrl)
+  
+  const category = selectedProduct?.category || ''
 
   // Track which material UUIDs have already been cloned so that shared
   // materials are cached correctly.
@@ -75,7 +89,7 @@ export default function GarmentModel({ modelPath, onMeshesFound }) {
     }
   }, [scene, onMeshesFound])
 
-  // Apply zone colours whenever colorZones or scene changes
+  // Apply zone colours whenever colorZones, category, or scene changes
   useEffect(() => {
     const cloneMap = clonedMaterials.current
 
@@ -92,7 +106,7 @@ export default function GarmentModel({ modelPath, onMeshesFound }) {
           mat = originalMat.clone()
           cloneMap.set(cacheKey, mat)
         }
-        const zone = getMaterialZone(mat.name, obj.name, obj.parent?.name)
+        const zone = getMaterialZone(mat.name, obj.name, obj.parent?.name, category)
         const targetColor = colorZones[zone]
         if (targetColor) {
           mat.color.set(targetColor)
@@ -107,7 +121,33 @@ export default function GarmentModel({ modelPath, onMeshesFound }) {
         obj.material = applyToMaterial(obj.material)
       }
     })
-  }, [scene, colorZones])
+  }, [scene, colorZones, category])
+
+  // Handle visibility of pre-baked meshes based on custom text/logo state
+  useEffect(() => {
+    const hasCustomText = !!(textConfig.teamName || textConfig.playerNumber)
+    const hasCustomLogo = !!logoUrl
+
+    scene.traverse((obj) => {
+      if (!obj.isMesh) return
+
+      const parentName = (obj.parent?.name || '').toLowerCase()
+      const objName = (obj.name || '').toLowerCase()
+      
+      const isTextMesh = parentName.includes('player_name') || parentName.includes('number') ||
+                         objName.includes('player_name') || objName.includes('number')
+                         
+      const isLogoMesh = parentName.includes('team_logo') || parentName.includes('team_slogan') ||
+                         objName.includes('team_logo') || objName.includes('team_slogan')
+
+      if (isTextMesh) {
+        obj.visible = !hasCustomText
+      }
+      if (isLogoMesh) {
+        obj.visible = !hasCustomLogo
+      }
+    })
+  }, [scene, textConfig.teamName, textConfig.playerNumber, logoUrl])
 
   return (
     <group scale={scale} position={[offset.x * scale, offset.y * scale, offset.z * scale]}>
@@ -118,5 +158,6 @@ export default function GarmentModel({ modelPath, onMeshesFound }) {
 }
 
 useGLTF.preload('/models/jersey.glb')
+useGLTF.preload('/models/basketball_jersey.glb')
 useGLTF.preload('/models/cap.glb')
 useGLTF.preload('/models/pants.glb')

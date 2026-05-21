@@ -10,9 +10,13 @@ export default function LogoPanel() {
   const logoPlacement = useStore(state => state.logoPlacement)
   const setLogoUrl = useStore(state => state.setLogoUrl)
   const setLogoPlacement = useStore(state => state.setLogoPlacement)
+  const selectedProduct = useStore(state => state.selectedProduct)
   const fileInputRef = useRef(null)
 
   const [isUploading, setIsUploading] = useState(false)
+
+  const isBasketball = selectedProduct?.category === 'basketball'
+  const placements = isBasketball ? ['chest', 'back'] : PLACEMENTS
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0]
@@ -91,7 +95,7 @@ export default function LogoPanel() {
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-500">Logo placement</label>
           <div className="flex gap-2">
-            {PLACEMENTS.map(p => (
+            {placements.map(p => (
               <button
                 key={p}
                 onClick={() => setLogoPlacement(p)}

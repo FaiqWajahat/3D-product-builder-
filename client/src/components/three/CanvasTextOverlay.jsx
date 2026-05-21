@@ -245,14 +245,18 @@ export function LogoOverlay({ targetMesh }) {
 
 // ─── Default export: both overlays together ───────────────────────────────────
 export default function CanvasTextOverlay({ meshes }) {
-  if (!meshes || meshes.length === 0) return null;
+  const visibleMeshes = useMemo(() => {
+    return (meshes || []).filter((mesh) => mesh.visible)
+  }, [meshes])
+
+  if (visibleMeshes.length === 0) return null;
   
   return (
     <>
-      {meshes.map((mesh) => (
+      {visibleMeshes.map((mesh) => (
         <TextOverlay key={`text-${mesh.uuid}`} targetMesh={mesh} />
       ))}
-      {meshes.map((mesh) => (
+      {visibleMeshes.map((mesh) => (
         <LogoOverlay key={`logo-${mesh.uuid}`} targetMesh={mesh} />
       ))}
     </>
