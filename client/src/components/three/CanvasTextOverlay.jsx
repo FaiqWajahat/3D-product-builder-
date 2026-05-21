@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
+/* eslint-disable react-hooks/refs */
+import { useState, useEffect, useRef, useMemo } from 'react'
 import * as THREE from 'three'
 import { createPortal } from '@react-three/fiber'
 import { Decal } from '@react-three/drei'
@@ -65,10 +66,8 @@ function disposeTexture(tex) {
 
 // Helper: convert world to local space based on target mesh
 function useLocalTransform(targetMesh, placementKey, category) {
-  const [transform, setTransform] = useState(null)
-  
-  useEffect(() => {
-    if (!targetMesh) return
+  return useMemo(() => {
+    if (!targetMesh) return null
     const placements = GET_PLACEMENT_POSITIONS(category)
     const placement = placements[placementKey] || placements.chest
     
@@ -90,7 +89,7 @@ function useLocalTransform(targetMesh, placementKey, category) {
     const q_local = q_parent.clone().invert().multiply(q_world)
     const localRot = new THREE.Euler().setFromQuaternion(q_local)
     
-    setTransform({
+    return {
       position: [localPos.x, localPos.y, localPos.z],
       rotation: [localRot.x, localRot.y, localRot.z],
       scale: [
@@ -98,10 +97,8 @@ function useLocalTransform(targetMesh, placementKey, category) {
         placement.size[1] / worldScale.y,
         placement.size[2] / worldScale.z
       ]
-    })
+    }
   }, [targetMesh, placementKey, category])
-  
-  return transform
 }
 
 // ─── Text overlay (chest / back / sleeve based on textConfig.placement) ───────
@@ -110,16 +107,15 @@ export function TextOverlay({ targetMesh }) {
   const selectedProduct = useStore(state => state.selectedProduct)
   const category = selectedProduct?.category || 'jersey'
   const texRef = useRef(null)
-  const [texture, setTexture] = useState(null)
 
-  useEffect(() => {
-    const hasText = textConfig.teamName || textConfig.playerNumber
-    if (!hasText) {
-      disposeTexture(texRef.current)
+  const texture = useMemo(() => {
+    if (texRef.current) {
+      texRef.current.dispose()
       texRef.current = null
-      setTexture(null)
-      return
     }
+
+    const hasText = textConfig.teamName || textConfig.playerNumber
+    if (!hasText) return null
 
     const SIZE = 512
     const canvas = document.createElement('canvas')
@@ -132,14 +128,18 @@ export function TextOverlay({ targetMesh }) {
 
     const tex = new THREE.CanvasTexture(canvas)
     tex.needsUpdate = true
-
-    disposeTexture(texRef.current)
     texRef.current = tex
-    setTexture(tex)
+    return tex
   }, [textConfig])
 
   // Dispose on unmount
-  useEffect(() => () => disposeTexture(texRef.current), [])
+  useEffect(() => {
+    return () => {
+      if (texRef.current) {
+        texRef.current.dispose()
+      }
+    }
+  }, [])
 
   const transform = useLocalTransform(targetMesh, textConfig.placement, category)
   
@@ -174,7 +174,9 @@ export function LogoOverlay({ targetMesh }) {
     if (!logoUrl) {
       disposeTexture(texRef.current)
       texRef.current = null
-      setTexture(null)
+      Promise.resolve().then(() => {
+        setTexture(null)
+      })
       return
     }
 

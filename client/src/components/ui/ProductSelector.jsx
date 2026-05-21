@@ -31,13 +31,12 @@ const getCategories = (products) =>
 
 export default function ProductSelector() {
   const [products, setProducts] = useState(FALLBACK_PRODUCTS)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('all')
   const selectedProduct = useStore(state => state.selectedProduct)
   const setSelectedProduct = useStore(state => state.setSelectedProduct)
 
   useEffect(() => {
-    setLoading(true)
     fetch(`${API_BASE_URL}/api/products`)
       .then(res => { if (!res.ok) throw new Error('API not ready'); return res.json() })
       .then(data => {

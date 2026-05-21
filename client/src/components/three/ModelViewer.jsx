@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react'
+import { Suspense, useState } from 'react'
 import Scene from './Scene'
 import GarmentModel from './GarmentModel'
 import CanvasTextOverlay from './CanvasTextOverlay'

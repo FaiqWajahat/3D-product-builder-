@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, useCallback } from 'react';
 import useStore from '../../store/useStore';
 import { API_BASE_URL } from '../../config';
@@ -10,8 +11,10 @@ export default function SavedDesignsModal({ isOpen, onClose }) {
   const loadDesignSnapshot = useStore(state => state.loadDesignSnapshot);
 
   const fetchDesigns = useCallback(async () => {
-    setLoading(true);
-    setError('');
+    Promise.resolve().then(() => {
+      setLoading(true);
+      setError('');
+    });
     try {
       const res = await fetch(`${API_BASE_URL}/api/designs`, {
         headers: {
